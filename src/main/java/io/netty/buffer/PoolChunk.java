@@ -277,7 +277,64 @@ public class PoolChunk<T> implements PoolChunkMetric {
 
 
     private long allocateSubpage(int normCapacity){
-        PoolSubpage<T> head = arena.
+        //找到对应分配的PoolSubpage
+        PoolSubpage<T> head = arena.findSubpagePoolHead(normCapacity);
+        synchronized (head){
+            //获取树的深度
+            int d = maxOrder;
+
+            //找到对应可以分配的块
+            int id = allocateNode(d);
+
+            //id小于0,表示没有找到
+            if (id < 0) {
+                return id;
+            }
+
+            final PoolSubpage<T>[] subpages = this.subpages;
+            final int pageSize = this.pageSize;
+
+            //计算整个chunk剩余内存大小
+            freeBytes -= pageSize;
+
+            //找到对应块的id,id^2048  如id=2048 ==》 subpageIdx=0 id =2049 subpageIdx==>1
+            //这样做的目的是确定当前内存是分配二叉树上的哪一个节点里面
+            int subpageIdx = subpageIdx(id);
+            PoolSubpage<T> subpage = subpages[subpageIdx];
+
+            if (subpage == null) {
+                //runOffset(id)表示在内存数组的应当分配在第几块中
+                //如分成了2048块,则树上2048则是数组下表为0,2049是数组下标为1
+                //如id是1024,表示其使用了树上2048和2049两块,在第十层级,下标依旧为0
+                subpage = new PoolSubpage<T>(head, this, id, runOffset(id), pageSize, normCapacity);
+                subpages[subpageIdx] = subpage;
+            } else {
+                subpage.init(head, normCapacity);
+            }
+            return subpage.allocate();
+        }
+    }
+
+    //
+    private int subpageIdx(int memoryMapIdx) {
+        return memoryMapIdx ^ maxSubpageAllocs;
+    }
+
+
+    /**
+     * 举例
+     * ① id=2048==>depth(id)=11
+     *    1<<11=2048  2048则为0
+     *
+     * ② id=2049==>depth(id)=11
+     *    1<<11=2048  2048则为1
+     *
+     * ③ id=1024==>depth(id)=10
+     *    1<<10=1024  1024为0
+     * */
+    private int runOffset(int id) {
+        int shift = id ^ 1 << depth(id);
+        return shift * runLength(id);
     }
 
     private int runLength(int id) {
@@ -289,7 +346,6 @@ public class PoolChunk<T> implements PoolChunkMetric {
     private byte depth(int id) {
         return depthMap[id];
     }
-
 
 
 }

@@ -149,20 +149,31 @@ public abstract class PoolArena<T> implements PoolArenaMetric {
         return new PoolSubpage[size];
     }
 
+    /**
+     * @Desc 根据内存大小找到对应的PoolSubpage
+     * 
+     * */
     PoolSubpage<T> findSubpagePoolHead(int elemSize){
         int tableIdx;
         PoolSubpage<T>[] table;
 
+        //如果内存大小是Tiny,即小于512B,
         if(isTiny(elemSize)){
+            //找到表对应的idx,tinySubpagePools的大小是32,故这里右移4位确定,其存在的位置
             tableIdx = elemSize>>>4;
+            //获取tiny对应的PoolSubpage
             table = tinySubpagePools;
         }else{
+            //Small内存大小范围在512KB~8KB,
+            //直接移动10,tableIdx初始值为0,表示范围在512B~1024B存放在数组下标为0的位置
             tableIdx=0;
             elemSize>>>=10;
+            //依次确定1KB~2KB 2KB~4KB 4KB~8KB的数组下标1 2 3的位置
             while (elemSize!=0){
                 elemSize>>>=1;
                 tableIdx++;
             }
+            //smallSubpagePools数组大小为4
             table = smallSubpagePools;
         }
         return table[tableIdx];

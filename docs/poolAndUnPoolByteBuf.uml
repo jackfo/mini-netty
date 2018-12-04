@@ -2,12 +2,21 @@
 <Diagram>
   <ID>JAVA</ID>
   <OriginalElement />
-  <nodes />
+  <nodes>
+    <node x="162.0" y="225.0">io.netty.buffer.PoolArena</node>
+    <node x="0.0" y="0.0">io.netty.buffer.PooledByteBufAllocator</node>
+    <node x="0.0" y="150.0">io.netty.buffer.PoolSubpage</node>
+    <node x="0.0" y="75.0">io.netty.buffer.PoolThreadCache</node>
+    <node x="0.0" y="225.0">io.netty.buffer.PoolChunk</node>
+  </nodes>
   <notes />
   <edges />
   <settings layout="Hierarchic Group" zoom="1.0" x="0.0" y="0.0" />
-  <SelectedNodes />
+  <SelectedNodes>
+    <node>io.netty.buffer.PoolThreadCache</node>
+  </SelectedNodes>
   <Categories />
   <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
 </Diagram>
 
